@@ -1,0 +1,950 @@
+<!doctype html>
+<html lang="uk">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Air Battle</title>
+<meta name="description" content="Air Battle — повітряний бій для 2–3 гравців: гелікоптери, літаки і VIP-літак. Гру придумав Костя.">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Nunito:wght@700;800;900&display=swap" rel="stylesheet">
+<style>
+:root{--ink:#1f2a44;--muted:#5f6f8f;--chip:#d3e4f5;--acc:#ff6a3d;--accd:#d4471c}
+*{box-sizing:border-box}
+html,body{margin:0;min-height:100%}
+body{background:linear-gradient(180deg,#b9e3ff 0,#e4f4ff 45%,#fff3df 100%);background-attachment:fixed;color:var(--ink);
+  font-family:Nunito,system-ui,-apple-system,"Segoe UI",Roboto,sans-serif;-webkit-tap-highlight-color:transparent;overflow-x:hidden}
+button{font:inherit;color:inherit;touch-action:manipulation}
+.hidden{display:none!important}
+.wrap{max-width:560px;margin:0 auto;padding:12px 16px 40px;position:relative}
+h1{font-weight:900;font-size:46px;margin:6px 0 0;text-align:center;line-height:1.05}
+h1 .a{color:#2f80ed} h1 .b{color:var(--acc)}
+.sub{text-align:center;color:var(--muted);margin:4px 0 8px;font-weight:800;font-size:18px}
+.hero{position:relative;height:96px;margin:6px 0 2px;overflow:hidden;border-radius:20px;background:linear-gradient(180deg,#8fd0ff,#d9f0ff)}
+.hero .cl{position:absolute;background:#fff;border-radius:999px;opacity:.9}
+.hero .hb{position:absolute;top:14px;width:118px;height:74px;animation:heroFly 7s linear infinite;filter:drop-shadow(8px 12px 3px rgba(0,0,0,.18))}
+.hero .hb svg{width:100%;height:100%}
+@keyframes heroFly{from{left:-140px}to{left:105%}}
+.card{background:#fff;border-radius:22px;box-shadow:0 6px 0 rgba(31,42,68,.06),0 10px 30px rgba(31,42,68,.08);padding:14px 16px;margin:12px 0}
+.label{font-weight:900;margin:0 0 10px;font-size:17px}
+.chips{display:flex;flex-wrap:wrap;gap:8px}
+.chip{border:3px solid var(--chip);background:#f5faff;border-radius:999px;padding:8px 13px;font-weight:800;font-size:16px;cursor:pointer}
+.chip.on{border-color:#2f80ed;background:#e2efff}
+.fleetprev{display:flex;flex-direction:column;gap:8px;margin-top:12px}
+.fleetprev .row{display:flex;align-items:center;gap:12px;font-weight:800;color:var(--muted)}
+.fleetprev svg{flex:none}
+.big-btn{display:block;width:100%;border:0;border-radius:18px;padding:15px;font-weight:900;font-size:23px;color:#fff;background:var(--acc);box-shadow:0 6px 0 var(--accd);cursor:pointer;margin:14px 0 4px}
+.big-btn:active{transform:translateY(3px);box-shadow:0 3px 0 var(--accd)}
+.btn{border:0;border-radius:14px;padding:10px 14px;font-weight:900;font-size:17px;background:#fff;box-shadow:0 4px 0 rgba(31,42,68,.13);cursor:pointer}
+.btn:active{transform:translateY(2px);box-shadow:0 2px 0 rgba(31,42,68,.13)}
+.btn.prim{background:var(--acc);color:#fff;box-shadow:0 4px 0 var(--accd)}
+.btn.sm{padding:7px 11px;font-size:18px}
+.sound{position:absolute;right:16px;top:12px;z-index:2}
+.rules ol{margin:0;padding-left:22px;font-weight:700;line-height:1.55}
+.stats{text-align:center;font-weight:800;color:var(--muted);margin-top:10px}
+.foot{text-align:center;font-weight:900;color:#8a7aa8;margin-top:14px}
+/* game screens */
+.topbar{display:flex;align-items:center;gap:10px;justify-content:space-between;padding:10px 16px 0;max-width:1100px;margin:0 auto}
+.pill{flex:1;text-align:center;font-weight:900;font-size:18px;color:#fff;border-radius:999px;padding:7px 12px;background:#2f80ed;box-shadow:0 4px 0 rgba(0,0,0,.12);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.msg{text-align:center;font-weight:900;font-size:19px;min-height:54px;padding:8px 16px 4px;max-width:900px;margin:0 auto;display:flex;align-items:center;justify-content:center;gap:10px;flex-wrap:wrap}
+.arena{display:flex;flex-direction:column;align-items:center;gap:14px;padding:0 16px 24px;max-width:1100px;margin:0 auto}
+.arena.wide{flex-direction:row;align-items:flex-start;justify-content:center;gap:28px}
+.stage{display:flex;flex-direction:column;align-items:center;gap:8px}
+.stagehead{font-weight:900;font-size:18px;min-height:24px}
+.fleetline{display:flex;gap:12px;flex-wrap:wrap;justify-content:center;min-height:22px}
+.fi{position:relative;display:inline-flex}
+.fi.sunk svg{opacity:.55}
+.fi.sunk::after{content:"✖";position:absolute;inset:0;display:grid;place-items:center;color:#e53935;font-weight:900;font-size:17px}
+.dock{display:flex;gap:12px;flex-wrap:wrap;justify-content:center}
+.arena.wide .dock{flex-direction:column}
+.mini{display:flex;flex-direction:column;align-items:center;gap:4px;cursor:pointer}
+.mlab{display:flex;align-items:center;gap:5px;font-weight:900;font-size:14px;white-space:nowrap}
+.mlab .dot{width:11px;height:11px;border-radius:50%;flex:none}
+.mini.turn .mlab{text-decoration:underline;text-decoration-thickness:3px;text-underline-offset:3px}
+/* board */
+.board{position:relative;border-radius:12px;overflow:hidden;flex:none;--cs:30px;
+  background:radial-gradient(ellipse 30% 14% at 22% 30%,rgba(255,255,255,.55),transparent 70%),radial-gradient(ellipse 26% 12% at 75% 72%,rgba(255,255,255,.5),transparent 70%),linear-gradient(180deg,#8fd0ff,#cdeeff);
+  box-shadow:0 4px 0 rgba(31,42,68,.12),0 8px 20px rgba(31,42,68,.12)}
+.board .planes,.board .grid,.board .fx{position:absolute;inset:0}
+.board .planes{z-index:1;pointer-events:none}
+.board .grid{z-index:2;display:grid;grid-template-columns:repeat(var(--n),1fr);grid-template-rows:repeat(var(--n),1fr)}
+.board .fx{z-index:3;pointer-events:none;overflow:hidden}
+.cell{position:relative;border:0;margin:0;padding:0;background:transparent;border-right:1px solid rgba(255,255,255,.6);border-bottom:1px solid rgba(255,255,255,.6);cursor:default;min-width:0;min-height:0}
+.cell.miss::after,.cell.auto::after{content:"";position:absolute;left:50%;top:50%;width:24%;height:24%;transform:translate(-50%,-50%);border-radius:50%;background:#2b5f8f}
+.cell.auto::after{opacity:.35}
+.cell.hit::after{content:"🔥";position:absolute;inset:0;display:grid;place-items:center;font-size:calc(var(--cs)*.6);line-height:1}
+.board.target .cell{cursor:crosshair}
+.board.target .cell:not(.miss):not(.hit):not(.auto):hover{background:rgba(255,255,255,.45)}
+.board.out{filter:grayscale(.8) brightness(.92)}
+.board.out::after{content:"😵";position:absolute;inset:0;z-index:4;display:grid;place-items:center;font-size:calc(var(--cs)*3);opacity:.85;pointer-events:none}
+.pl{position:absolute;overflow:visible}
+.pl.reveal{opacity:.6}
+.pl.drag{filter:drop-shadow(0 0 4px #ffd23f) drop-shadow(0 0 7px #ffd23f)}
+.pl.bad{filter:drop-shadow(0 0 4px #ff2d2d) drop-shadow(0 0 7px #ff2d2d);opacity:.75}
+.board.setup .grid{touch-action:none}
+.board.setup .cell{cursor:grab}
+.fly,.dropb{position:absolute;left:0;top:0;will-change:transform}
+.fly{filter:drop-shadow(7px 11px 3px rgba(0,0,0,.25))}
+.fly svg,.dropb svg{width:100%;height:100%;display:block}
+.boom,.puff{position:absolute;border-radius:50%;pointer-events:none}
+.boom{background:radial-gradient(circle,#fffbd0 0,#ffd23f 22%,#ff8a1f 44%,rgba(255,70,20,.55) 58%,rgba(255,70,20,0) 70%)}
+.puff{background:radial-gradient(circle,rgba(255,255,255,.95) 0,rgba(255,255,255,.75) 35%,rgba(255,255,255,0) 70%)}
+.nudge{animation:nudge .3s}
+@keyframes nudge{0%,100%{transform:translateX(0)}25%{transform:translateX(-4px)}75%{transform:translateX(4px)}}
+/* setup */
+.setupwrap{display:flex;flex-direction:column;align-items:center;gap:14px;padding:4px 16px 24px}
+.setupbtns{display:flex;gap:10px;flex-wrap:wrap;justify-content:center}
+/* overlays */
+.overlay{position:fixed;inset:0;z-index:50;display:grid;place-items:center;padding:16px;background:rgba(31,42,68,.45)}
+.overlay.solid{background:linear-gradient(180deg,#b9e3ff,#fff3df)}
+.ovcard{background:#fff;border-radius:26px;padding:22px 20px;max-width:420px;width:100%;text-align:center;box-shadow:0 10px 40px rgba(31,42,68,.25)}
+.ovbig{font-size:64px;line-height:1.1}
+.ovtitle{font-weight:900;font-size:28px;margin:6px 0}
+.ovsub{font-weight:800;color:var(--muted);font-size:17px;margin-bottom:14px}
+.ovbtns{display:flex;gap:10px;justify-content:center;flex-wrap:wrap}
+.confetti{position:fixed;inset:0;pointer-events:none;z-index:60;overflow:hidden}
+.confetti i{position:absolute;top:0;width:9px;height:14px;border-radius:2px}
+</style>
+</head>
+<body>
+<section id="menu">
+  <div class="wrap">
+    <button class="btn sm sound" data-sound type="button">🔊</button>
+    <h1><span class="a">Air</span> <span class="b">Battle</span></h1>
+    <div class="sub">Повітряний бій ✈️💣</div>
+    <div class="hero" id="hero"></div>
+    <div class="card"><div class="label">Хто грає?</div><div class="chips" id="cMode"></div></div>
+    <div class="card"><div class="label">Небо</div><div class="chips" id="cSize"></div><div class="fleetprev" id="fleetPrev"></div></div>
+    <div class="card" id="diffCard"><div class="label">Роботи</div><div class="chips" id="cDiff"></div></div>
+    <button class="big-btn" id="bPlay" type="button">▶ Грати!</button>
+    <div class="card rules"><div class="label">Як грати?</div><ol>
+      <li>Сховай свої літаки на небі.</li>
+      <li>По черзі скидайте бомби на небо суперників.</li>
+      <li>💥 Влучання — бомбиш ще раз! 💨 Мимо — хід далі.</li>
+      <li>Хто втратив усі літаки — вибуває. Останній у небі перемагає! 🏆</li>
+    </ol></div>
+    <div class="stats" id="stats"></div>
+    <div class="foot">Гру придумав Костя 💡</div>
+  </div>
+</section>
+
+<section id="setup" class="hidden">
+  <div class="topbar"><button class="btn sm" data-home type="button">🏠</button><div class="pill" id="sPill"></div><button class="btn sm" data-sound type="button">🔊</button></div>
+  <div class="msg" id="sMsg"></div>
+  <div class="setupwrap">
+    <div id="setupSlot"></div>
+    <div class="setupbtns"><button class="btn" id="bShuf" type="button">🔀 Перемішати</button><button class="btn prim" id="bReady" type="button">✅ Готово!</button></div>
+  </div>
+</section>
+
+<section id="battle" class="hidden">
+  <div class="topbar"><button class="btn sm" data-home type="button">🏠</button><div class="pill" id="bPill"></div><button class="btn sm" data-sound type="button">🔊</button></div>
+  <div class="msg" id="bMsg"></div>
+  <div class="arena" id="arena">
+    <div class="stage"><div class="stagehead" id="stageHead"></div><div id="stageSlot"></div><div class="fleetline" id="fleetLine"></div></div>
+    <div class="dock" id="dock"></div>
+  </div>
+</section>
+
+<div class="overlay solid hidden" id="cover"><div class="ovcard"><div class="ovbig">🙈</div><div class="ovtitle" id="covTitle"></div><div class="ovsub" id="covSub"></div><button class="big-btn" id="covGo" type="button"></button></div></div>
+<div class="overlay hidden" id="end"><div class="ovcard"><div class="ovbig" id="endIcon"></div><div class="ovtitle" id="endTitle"></div><div class="ovsub" id="endSub"></div>
+  <div class="ovbtns"><button class="btn prim" id="bAgain" type="button">🔁 Ще раз</button><button class="btn" id="bLook" type="button">👀 Небо</button><button class="btn" data-home type="button">🏠 Меню</button></div></div></div>
+
+<script>
+(() => {
+'use strict';
+const $ = s => document.querySelector(s);
+const $$ = s => Array.from(document.querySelectorAll(s));
+const rnd = n => Math.floor(Math.random() * n);
+let FAST = false;   // без анімацій і пауз (для перевірок)
+let GEN = 0;        // зростає з кожною новою грою чи виходом у меню, зупиняє старі ходи
+const sleep = ms => FAST ? Promise.resolve() : new Promise(r => setTimeout(r, ms));
+const LS = {
+  get(k, d) { try { const v = localStorage.getItem('airbattle.' + k); return v == null ? d : JSON.parse(v); } catch (e) { return d; } },
+  set(k, v) { try { localStorage.setItem('airbattle.' + k, JSON.stringify(v)); } catch (e) {} }
+};
+
+const TYPES = {
+  heli:  { len: 2, name: 'Гелікоптер', acc: 'гелікоптер' },
+  plane: { len: 3, name: 'Літак', acc: 'літак' },
+  vip:   { len: 4, name: 'VIP-літак', acc: 'VIP-літак' }
+};
+const FLEETS = { 8: ['vip', 'plane', 'plane', 'heli', 'heli'], 10: ['vip', 'plane', 'plane', 'heli', 'heli', 'heli'] };
+const MODES = {
+  b1:  { label: '👤 Я і робот', kinds: ['h', 'b'] },
+  b2:  { label: '👤 Я і 2 роботи', kinds: ['h', 'b', 'b'] },
+  h2:  { label: '👤👤 2 друзі', kinds: ['h', 'h'] },
+  h2b: { label: '👤👤 2 друзі і робот', kinds: ['h', 'h', 'b'] },
+  h3:  { label: '👤👤👤 3 друзі', kinds: ['h', 'h', 'h'] }
+};
+const COLORS = ['#2f80ed', '#e8505b', '#1fa35a'];
+const SUNK = '#6b7280';
+
+const cfg = { mode: LS.get('mode', 'b1'), size: LS.get('size', 8), diff: LS.get('diff', 'easy'), sound: LS.get('sound', true) };
+if (!MODES[cfg.mode]) cfg.mode = 'b1';
+if (!FLEETS[cfg.size]) cfg.size = 8;
+if (cfg.diff !== 'hard') cfg.diff = 'easy';
+
+let st = null;
+
+/* ---------- малюнки (вигляд згори, ніс ліворуч, одна клітинка = 100) ---------- */
+function shade(hex, k) {
+  const v = parseInt(hex.slice(1), 16), f = x => Math.round(x * (k || .72)).toString(16).padStart(2, '0');
+  return '#' + f((v >> 16) & 255) + f((v >> 8) & 255) + f(v & 255);
+}
+function star(cx, cy, R, r) {
+  let d = '';
+  for (let i = 0; i < 10; i++) {
+    const a = -Math.PI / 2 + i * Math.PI / 5, q = i % 2 ? r : R;
+    d += (i ? 'L' : 'M') + (cx + q * Math.cos(a)).toFixed(1) + ',' + (cy + q * Math.sin(a)).toFixed(1);
+  }
+  return d + 'Z';
+}
+const DRAW = {
+  heli(b, still) {
+    const spin = still ? '' : '<animateTransform attributeName="transform" type="rotate" from="0 62 50" to="360 62 50" dur="0.45s" repeatCount="indefinite"/>';
+    return `<rect x="94" y="44" width="88" height="12" rx="6" fill="${shade(b)}"/>` +
+      '<rect x="174" y="27" width="10" height="46" rx="5" fill="#37474f"/>' +
+      '<rect x="16" y="13" width="92" height="7" rx="3.5" fill="#455a64"/><rect x="16" y="80" width="92" height="7" rx="3.5" fill="#455a64"/>' +
+      `<ellipse cx="62" cy="50" rx="50" ry="32" fill="${b}"/>` +
+      '<ellipse cx="36" cy="50" rx="20" ry="20" fill="#c9ecff" stroke="#fff" stroke-width="4"/>' +
+      `<g>${spin}<rect x="-4" y="45" width="132" height="10" rx="5" fill="#263238" opacity=".75"/><rect x="57" y="-16" width="10" height="132" rx="5" fill="#263238" opacity=".75"/></g>` +
+      '<circle cx="62" cy="50" r="8" fill="#263238"/>';
+  },
+  plane(b) {
+    const d = shade(b);
+    return `<path d="M110,40 L168,5 L196,5 L166,40 Z M110,60 L168,95 L196,95 L166,60 Z" fill="${d}"/>` +
+      `<path d="M238,41 L270,18 L287,18 L266,42 Z M238,59 L270,82 L287,82 L266,58 Z" fill="${d}"/>` +
+      `<path d="M10,50 C10,41 26,38 46,38 L272,41 Q291,43 291,50 Q291,57 272,59 L46,62 C26,62 10,59 10,50 Z" fill="${b}"/>` +
+      '<ellipse cx="38" cy="50" rx="15" ry="8" fill="#c9ecff"/>' +
+      '<rect x="70" y="48" width="170" height="4" rx="2" fill="#fff" opacity=".55"/>';
+  },
+  vip(b) {
+    const d = shade(b);
+    return `<path d="M150,37 L238,4 L274,4 L222,37 Z M150,63 L238,96 L274,96 L222,63 Z" fill="${d}"/>` +
+      '<ellipse cx="200" cy="25" rx="15" ry="6" fill="#37474f"/><ellipse cx="236" cy="13" rx="12" ry="5" fill="#37474f"/>' +
+      '<ellipse cx="200" cy="75" rx="15" ry="6" fill="#37474f"/><ellipse cx="236" cy="87" rx="12" ry="5" fill="#37474f"/>' +
+      `<path d="M330,38 L368,13 L389,13 L360,40 Z M330,62 L368,87 L389,87 L360,60 Z" fill="${d}"/>` +
+      `<path d="M10,50 C10,38 32,34 60,34 L372,38 Q395,40 395,50 Q395,60 372,62 L60,66 C32,66 10,62 10,50 Z" fill="${b}"/>` +
+      '<rect x="64" y="46" width="300" height="8" rx="4" fill="#ffd23f"/>' +
+      '<ellipse cx="42" cy="50" rx="17" ry="10" fill="#c9ecff"/>' +
+      `<path d="${star(118, 50, 14, 6)}" fill="#ffd23f" stroke="#b8860b" stroke-width="2.5"/>`;
+  }
+};
+const BOMBER = '<svg viewBox="0 0 160 100"><path d="M98,41 L62,4 L44,4 L64,41 Z M98,59 L62,96 L44,96 L64,59 Z" fill="#455a64"/>' +
+  '<ellipse cx="76" cy="21" rx="10" ry="4" fill="#263238"/><ellipse cx="76" cy="79" rx="10" ry="4" fill="#263238"/>' +
+  '<path d="M32,43 L15,21 L6,21 L16,45 Z M32,57 L15,79 L6,79 L16,55 Z" fill="#455a64"/>' +
+  '<path d="M151,50 C151,42 139,39 123,39 L22,42 Q8,44 8,50 Q8,56 22,58 L123,61 C139,61 151,58 151,50 Z" fill="#5f7c8a"/>' +
+  '<ellipse cx="135" cy="50" rx="9" ry="6" fill="#9fd3ff"/></svg>';
+const BOMB = '<svg viewBox="0 0 40 24"><path d="M7,12 L0,3 L10,8 Z M7,12 L0,21 L10,16 Z" fill="#37474f"/><ellipse cx="22" cy="12" rx="15" ry="8" fill="#263238"/><ellipse cx="28" cy="9" rx="4" ry="2" fill="#fff" opacity=".35"/></svg>';
+
+function planeSVG(type, head, dir, n, color, cls) {
+  const L = TYPES[type].len, r = (head / n) | 0, c = head % n, hz = dir === 'h';
+  const vb = hz ? `0 0 ${L * 100} 100` : `0 0 100 ${L * 100}`;
+  const pos = `left:${c / n * 100}%;top:${r / n * 100}%;width:${(hz ? L : 1) / n * 100}%;height:${(hz ? 1 : L) / n * 100}%`;
+  return `<svg class="pl ${cls}" viewBox="${vb}" style="${pos}"><g${hz ? '' : ' transform="translate(100,0) rotate(90)"'}>${DRAW[type](color, cls === 'sunk')}</g></svg>`;
+}
+function iconSVG(type, color, h) {
+  const L = TYPES[type].len;
+  return `<svg viewBox="0 0 ${L * 100} 100" style="height:${h}px;width:${L * h}px;overflow:visible">${DRAW[type](color, true)}</svg>`;
+}
+
+/* ---------- звук ---------- */
+const sfx = (() => {
+  let ctx = null, noiseBuf = null;
+  function ac() {
+    if (!cfg.sound) return null;
+    try {
+      if (!ctx) { const C = window.AudioContext || window.webkitAudioContext; if (!C) return null; ctx = new C(); }
+      if (ctx.state === 'suspended') ctx.resume();
+      return ctx;
+    } catch (e) { return null; }
+  }
+  function noise(c) {
+    if (!noiseBuf) {
+      noiseBuf = c.createBuffer(1, c.sampleRate, c.sampleRate);
+      const d = noiseBuf.getChannelData(0);
+      for (let i = 0; i < d.length; i++) d[i] = Math.random() * 2 - 1;
+    }
+    const s = c.createBufferSource(); s.buffer = noiseBuf; return s;
+  }
+  function tone(f0, f1, dur, type, vol, when) {
+    const c = ac(); if (!c) return;
+    const t = c.currentTime + (when || 0), o = c.createOscillator(), g = c.createGain();
+    o.type = type || 'sine';
+    o.frequency.setValueAtTime(f0, t);
+    if (f1 !== f0) o.frequency.exponentialRampToValueAtTime(f1, t + dur);
+    g.gain.setValueAtTime(vol, t);
+    g.gain.exponentialRampToValueAtTime(.0001, t + dur);
+    o.connect(g).connect(c.destination);
+    o.start(t); o.stop(t + dur + .02);
+  }
+  function burst(type, f0, f1, vol, dur, q) {
+    const c = ac(); if (!c) return;
+    const t = c.currentTime, s = noise(c), f = c.createBiquadFilter(), g = c.createGain();
+    f.type = type; f.frequency.setValueAtTime(f0, t);
+    if (f1 !== f0) f.frequency.exponentialRampToValueAtTime(f1, t + dur);
+    if (q) f.Q.value = q;
+    g.gain.setValueAtTime(vol, t); g.gain.exponentialRampToValueAtTime(.0001, t + dur);
+    s.connect(f).connect(g).connect(c.destination);
+    s.start(t); s.stop(t + dur + .05);
+  }
+  return {
+    whistle() { tone(1500, 520, .42, 'sine', .05); },
+    boom(big) { burst('lowpass', big ? 1400 : 1000, 120, big ? .7 : .5, big ? 1 : .6); tone(110, 40, big ? .5 : .3, 'sine', big ? .5 : .35); },
+    splash() { burst('bandpass', 1800, 1800, .12, .35, .7); },
+    win() { [523, 659, 784, 1047].forEach((f, i) => tone(f, f, .22, 'triangle', .13, i * .13)); },
+    lose() { [392, 330, 262].forEach((f, i) => tone(f, f * .97, .3, 'triangle', .12, i * .22)); },
+    tick() { tone(900, 700, .06, 'square', .03); }
+  };
+})();
+
+/* ---------- поле і літаки ---------- */
+function cellsOf(n, r, c, len, dir) {
+  const out = [];
+  for (let k = 0; k < len; k++) {
+    const rr = dir === 'v' ? r + k : r, cc = dir === 'h' ? c + k : c;
+    if (rr < 0 || cc < 0 || rr >= n || cc >= n) return null;
+    out.push(rr * n + cc);
+  }
+  return out;
+}
+// літаки не можуть торкатися навіть кутами
+function fits(n, occ, cells, ignore) {
+  for (const id of cells) {
+    const r = (id / n) | 0, c = id % n;
+    for (let dr = -1; dr <= 1; dr++) for (let dc = -1; dc <= 1; dc++) {
+      const rr = r + dr, cc = c + dc;
+      if (rr < 0 || cc < 0 || rr >= n || cc >= n) continue;
+      const o = occ[rr * n + cc];
+      if (o !== -1 && o !== ignore) return false;
+    }
+  }
+  return true;
+}
+function randomFleet(n, types) {
+  const order = types.map((t, i) => i).sort((a, b) => TYPES[types[b]].len - TYPES[types[a]].len);
+  for (let attempt = 0; attempt < 500; attempt++) {
+    const occ = new Int8Array(n * n).fill(-1), fleet = new Array(types.length);
+    let ok = true;
+    for (const i of order) {
+      const len = TYPES[types[i]].len;
+      let cells = null, dir = 'h';
+      for (let tries = 0; tries < 200 && !cells; tries++) {
+        dir = Math.random() < .5 ? 'h' : 'v';
+        const cand = cellsOf(n, rnd(n), rnd(n), len, dir);
+        if (cand && fits(n, occ, cand, -1)) cells = cand;
+      }
+      if (!cells) { ok = false; break; }
+      cells.forEach(id => { occ[id] = i; });
+      fleet[i] = { type: types[i], len, dir, cells, hits: 0, sunk: false };
+    }
+    if (ok) return { fleet, occ };
+  }
+  throw new Error('no placement');
+}
+function makePlayers(kinds) {
+  const humans = kinds.filter(k => k === 'h').length, bots = kinds.length - humans;
+  let hn = 0, bn = 0;
+  return kinds.map((k, i) => {
+    const p = { i, kind: k, color: COLORS[i], icon: k === 'h' ? '👤' : '🤖', fleet: [], occ: null, shots: null, alive: true, lastTarget: -1 };
+    if (k === 'h') {
+      hn++;
+      if (humans === 1) Object.assign(p, { name: 'Ти', acc: 'тебе', dat: 'тобі', gen: 'твій' });
+      else Object.assign(p, { name: 'Гравець ' + hn, acc: 'Гравця ' + hn, dat: 'Гравцю ' + hn, gen: 'Гравця ' + hn });
+    } else {
+      bn++;
+      const num = bots > 1 ? ' ' + bn : '';
+      Object.assign(p, { name: 'Робот' + num, acc: 'Робота' + num, dat: 'Роботу' + num, gen: 'Робота' + num });
+    }
+    return p;
+  });
+}
+const soloOf = () => st.humans === 1 ? st.players.find(p => p.kind === 'h') : null;
+function whose(t, what) { return (st.humans === 1 && t.kind === 'h') ? 'твій ' + what : what + ' ' + t.gen; }
+function firstOpp(pi) { const p = st.players.find(q => q.alive && q.i !== pi); return p ? p.i : -1; }
+
+// shots: 0 — нічого, 1 — мимо, 2 — влучання, 3 — порожньо поруч зі збитим літаком
+function shoot(p, id) {
+  const n = st.n, o = p.occ[id];
+  if (o === -1) { p.shots[id] = 1; return { res: 'miss' }; }
+  p.shots[id] = 2;
+  const s = p.fleet[o];
+  s.hits++;
+  if (s.hits < s.len) return { res: 'hit', ship: s };
+  s.sunk = true;
+  for (const cid of s.cells) {
+    const r = (cid / n) | 0, c = cid % n;
+    for (let dr = -1; dr <= 1; dr++) for (let dc = -1; dc <= 1; dc++) {
+      const rr = r + dr, cc = c + dc;
+      if (rr < 0 || cc < 0 || rr >= n || cc >= n) continue;
+      if (p.shots[rr * n + cc] === 0) p.shots[rr * n + cc] = 3;
+    }
+  }
+  if (p.fleet.every(f => f.sunk)) p.alive = false;
+  return { res: 'sunk', ship: s };
+}
+
+/* ---------- роботи ---------- */
+function openHits(p) {
+  const out = [];
+  for (let id = 0; id < p.shots.length; id++) if (p.shots[id] === 2 && !p.fleet[p.occ[id]].sunk) out.push(id);
+  return out;
+}
+function finishShot(p, hits) {
+  const n = st.n, set = new Set(hits), inb = (r, c) => r >= 0 && c >= 0 && r < n && c < n;
+  const free = (r, c) => inb(r, c) && p.shots[r * n + c] === 0;
+  for (const id of hits) {
+    const r = (id / n) | 0, c = id % n;
+    for (const [dr, dc] of [[0, 1], [1, 0]]) {
+      if (!(inb(r + dr, c + dc) && set.has((r + dr) * n + c + dc))) continue;
+      let ar = r, ac = c, br = r + dr, bc = c + dc;
+      while (inb(ar - dr, ac - dc) && set.has((ar - dr) * n + ac - dc)) { ar -= dr; ac -= dc; }
+      while (inb(br + dr, bc + dc) && set.has((br + dr) * n + bc + dc)) { br += dr; bc += dc; }
+      const ends = [];
+      if (free(ar - dr, ac - dc)) ends.push((ar - dr) * n + ac - dc);
+      if (free(br + dr, bc + dc)) ends.push((br + dr) * n + bc + dc);
+      if (ends.length) return ends[rnd(ends.length)];
+    }
+  }
+  const opts = [];
+  for (const id of hits) {
+    const r = (id / n) | 0, c = id % n;
+    for (const [dr, dc] of [[0, 1], [1, 0], [0, -1], [-1, 0]]) if (free(r + dr, c + dc)) opts.push((r + dr) * n + c + dc);
+  }
+  return opts.length ? opts[rnd(opts.length)] : null;
+}
+function huntShot(p) {
+  const n = st.n, free = [];
+  for (let id = 0; id < n * n; id++) if (p.shots[id] === 0) free.push(id);
+  if (!free.length) return null;
+  if (cfg.diff !== 'hard') return free[rnd(free.length)];
+  // «складно»: бомбить туди, де літак може сховатися найбільшою кількістю способів
+  const score = new Float32Array(n * n);
+  for (const f of p.fleet) {
+    if (f.sunk) continue;
+    for (let r = 0; r < n; r++) for (let c = 0; c < n; c++) for (const dir of ['h', 'v']) {
+      const cells = cellsOf(n, r, c, f.len, dir);
+      if (!cells || cells.some(id => p.shots[id] !== 0)) continue;
+      cells.forEach(id => { score[id]++; });
+    }
+  }
+  let best = -1, cand = [];
+  for (const id of free) {
+    if (score[id] > best) { best = score[id]; cand = [id]; } else if (score[id] === best) cand.push(id);
+  }
+  return cand[rnd(cand.length)];
+}
+function botPick(bi) {
+  const me = st.players[bi], opps = st.players.filter(p => p.alive && p.i !== bi);
+  if (cfg.diff === 'hard' || Math.random() < .7) {
+    const wh = opps.map(p => ({ p, h: openHits(p) })).filter(x => x.h.length).sort((a, b) => b.h.length - a.h.length);
+    for (const x of wh) { const id = finishShot(x.p, x.h); if (id != null) return { t: x.p.i, id }; }
+  }
+  const lt = me.lastTarget;
+  let t = (lt >= 0 && lt !== bi && st.players[lt].alive && Math.random() < .5) ? st.players[lt] : opps[rnd(opps.length)];
+  let id = huntShot(t);
+  if (id == null) for (const p of opps) { id = huntShot(p); if (id != null) { t = p; break; } }
+  return { t: t.i, id };
+}
+
+/* ---------- відображення ---------- */
+function buildBoard(pi) {
+  const n = st.n, el = document.createElement('div');
+  el.className = 'board';
+  el.style.setProperty('--n', n);
+  el.innerHTML = '<div class="planes"></div><div class="grid"></div><div class="fx"></div>';
+  const grid = el.querySelector('.grid'), cells = [];
+  for (let id = 0; id < n * n; id++) {
+    const b = document.createElement('button');
+    b.type = 'button'; b.className = 'cell'; b.dataset.id = id; b.tabIndex = -1;
+    grid.appendChild(b); cells.push(b);
+  }
+  const B = { el, grid, cells, planes: el.querySelector('.planes'), fx: el.querySelector('.fx') };
+  grid.addEventListener('click', e => { const b = e.target.closest('.cell'); if (b) onBoardClick(pi, +b.dataset.id); });
+  attachDrag(B, pi);
+  return B;
+}
+function renderBoard(pi) {
+  const p = st.players[pi], B = st.boards[pi], n = st.n, mine = st.viewer === pi;
+  for (let id = 0; id < n * n; id++) {
+    const s = p.shots[id], cl = s === 1 ? 'cell miss' : s === 2 ? 'cell hit' : s === 3 ? 'cell auto' : 'cell';
+    if (B.cells[id].className !== cl) B.cells[id].className = cl;
+  }
+  let html = '';
+  p.fleet.forEach((f, k) => {
+    let cells = f.cells, cls = '';
+    if (st.drag && st.drag.pi === pi && st.drag.k === k && st.drag.cells) { cells = st.drag.cells; cls = st.drag.ok ? 'drag' : 'bad'; }
+    if (f.sunk) cls = 'sunk';
+    else if (!mine) { if (!st.over) return; cls = 'reveal'; }
+    html += planeSVG(f.type, cells[0], f.dir, n, f.sunk ? SUNK : p.color, cls);
+  });
+  B.planes.innerHTML = html;
+  B.el.classList.toggle('out', st.phase === 'battle' && !p.alive);
+  B.el.classList.toggle('setup', st.phase === 'setup' && mine);
+}
+function sizeBoard(B, side) {
+  B.el.style.width = B.el.style.height = side + 'px';
+  B.el.style.setProperty('--cs', side / st.n + 'px');
+}
+function layout() {
+  if (!st) return;
+  const W = document.documentElement.clientWidth, H = window.innerHeight;
+  if (st.phase === 'setup') {
+    if (st.viewer >= 0) sizeBoard(st.boards[st.viewer], Math.floor(Math.max(240, Math.min(W - 32, H - 230, 520))));
+    return;
+  }
+  if (st.phase !== 'battle') return;
+  const others = st.players.length - 1, wide = W >= 820;
+  $('#arena').classList.toggle('wide', wide);
+  let big, mini;
+  if (wide) {
+    mini = Math.min(170, Math.max(110, (H - 190) / others - 34));
+    big = Math.min(600, H - 175, W - 80 - mini);
+  } else {
+    mini = Math.min(150, (W - 32 - (others - 1) * 12) / others);
+    big = Math.min(W - 32, H - 175 - mini - 34, 540);
+  }
+  big = Math.floor(Math.max(250, big)); mini = Math.floor(Math.max(96, mini));
+  st.boards.forEach((B, i) => sizeBoard(B, i === st.focus ? big : mini));
+}
+function buildDock() {
+  const dock = $('#dock');
+  dock.innerHTML = '';
+  $('#stageHead').textContent = ''; $('#fleetLine').innerHTML = '';
+  st.minis = st.players.map(p => {
+    const m = document.createElement('div');
+    m.className = 'mini';
+    m.innerHTML = '<div class="mslot"></div><div class="mlab"><span class="dot"></span><span class="mname"></span><span class="mleft"></span></div>';
+    m.querySelector('.dot').style.background = p.color;
+    m.querySelector('.mlab').addEventListener('click', () => onBoardClick(p.i, -1));
+    m.querySelector('.mslot').appendChild(st.boards[p.i].el);
+    dock.appendChild(m);
+    return m;
+  });
+}
+function setFocus(pi) {
+  if (pi < 0 || pi === st.focus) { renderStage(); return; }
+  if (st.focus >= 0) st.minis[st.focus].querySelector('.mslot').appendChild(st.boards[st.focus].el);
+  st.focus = pi;
+  $('#stageSlot').appendChild(st.boards[pi].el);
+  st.minis.forEach((m, i) => m.classList.toggle('hidden', i === pi));
+  layout();
+  renderStage();
+}
+function renderStage() {
+  if (!st || st.focus < 0) return;
+  const p = st.players[st.focus], mine = st.viewer === p.i;
+  let head;
+  if (!p.alive) head = `😵 ${p.icon} ${p.name}: поза грою`;
+  else if (mine) head = st.humans === 1 ? '🛡️ Твоє небо' : `🛡️ Твоє небо (${p.name})`;
+  else head = `🎯 Небо: ${p.icon} ${p.name}`;
+  $('#stageHead').textContent = head;
+  $('#fleetLine').innerHTML = p.fleet.map(f => `<span class="fi${f.sunk ? ' sunk' : ''}" title="${TYPES[f.type].name}">${iconSVG(f.type, f.sunk ? '#a3acb6' : p.color, 20)}</span>`).join('');
+  st.boards.forEach((B, i) => B.el.classList.toggle('target', st.waiting && !st.over && i === st.focus && i !== st.turn && st.players[i].alive));
+}
+function renderDock() {
+  if (!st.minis) return;
+  st.minis.forEach((m, i) => {
+    const p = st.players[i], left = p.fleet.filter(f => !f.sunk).length;
+    m.querySelector('.mname').textContent = `${p.icon} ${p.name}`;
+    m.querySelector('.mleft').textContent = p.alive ? `· ✈️${left}` : '· 😵';
+    m.classList.toggle('turn', !st.over && i === st.turn);
+  });
+}
+function renderAll() { st.players.forEach(p => renderBoard(p.i)); renderDock(); renderStage(); }
+function updatePill() {
+  const p = st.players[st.turn], pill = $('#bPill');
+  pill.style.background = p.color;
+  pill.textContent = (p.kind === 'h' && st.humans === 1) ? '🎯 Твій хід!' : `Хід: ${p.icon} ${p.name}`;
+}
+function say(t) { $('#bMsg').textContent = t; }
+function sayS(t) { $('#sMsg').textContent = t; }
+function nudge(el) { el.classList.remove('nudge'); void el.offsetWidth; el.classList.add('nudge'); }
+function show(id) {
+  ['menu', 'setup', 'battle'].forEach(s => $('#' + s).classList.toggle('hidden', s !== id));
+  window.scrollTo(0, 0);
+}
+function cover(title, sub, btn) {
+  return new Promise(res => {
+    $('#covTitle').textContent = title; $('#covSub').textContent = sub; $('#covGo').textContent = btn;
+    $('#cover').classList.remove('hidden');
+    $('#covGo').onclick = () => { $('#cover').classList.add('hidden'); sfx.tick(); res(); };
+  });
+}
+
+/* ---------- бомбардувальник і вибухи ---------- */
+function fxAt(B, id) {
+  const n = st.n, cs = B.el.clientWidth / n;
+  return { cs, x: (id % n + .5) * cs, y: (((id / n) | 0) + .5) * cs };
+}
+function animateBomb(ti, id, quick) {
+  return new Promise(res => {
+    const B = st.boards[ti], side = B.el.clientWidth, { cs, x: tx, y: ty } = fxAt(B, id);
+    const bw = cs * 1.8, bh = bw * 100 / 160;
+    const fly = document.createElement('div');
+    fly.className = 'fly'; fly.innerHTML = BOMBER;
+    fly.style.width = bw + 'px'; fly.style.height = bh + 'px';
+    B.fx.appendChild(fly);
+    const x0 = -bw - cs * .3, x1 = side + cs * .3, y = ty - bh / 2, T = quick ? 780 : 950;
+    const relX = tx - cs * .9;   // бомба відривається трохи раніше і долітає до клітинки
+    const tRel = Math.max(0, T * ((relX - bw / 2) - x0) / (x1 - x0));
+    const a = fly.animate([{ transform: `translate(${x0}px,${y}px)` }, { transform: `translate(${x1}px,${y}px)` }], { duration: T, easing: 'linear' });
+    a.onfinish = () => fly.remove();
+    setTimeout(() => {
+      const bomb = document.createElement('div'), bs = cs * .6;
+      bomb.className = 'dropb'; bomb.innerHTML = BOMB;
+      bomb.style.width = bs + 'px'; bomb.style.height = bs * .6 + 'px';
+      B.fx.appendChild(bomb);
+      sfx.whistle();
+      const f = bomb.animate([
+        { transform: `translate(${relX - bs / 2}px,${ty - bs * .3}px) scale(1)` },
+        { transform: `translate(${tx - bs / 2}px,${ty - bs * .3}px) scale(.4)` }
+      ], { duration: 430, easing: 'ease-in' });
+      f.onfinish = () => { bomb.remove(); res(); };
+    }, tRel);
+  });
+}
+function boomFx(ti, id, kind) {
+  const B = st.boards[ti], { cs, x, y } = fxAt(B, id);
+  const d = document.createElement('div'), size = cs * (kind === 'sunk' ? 3.4 : kind === 'hit' ? 2.3 : 1.7);
+  d.className = kind === 'miss' ? 'puff' : 'boom';
+  Object.assign(d.style, { width: size + 'px', height: size + 'px', left: x - size / 2 + 'px', top: y - size / 2 + 'px' });
+  B.fx.appendChild(d);
+  const a = d.animate([{ transform: 'scale(.2)', opacity: 1 }, { transform: 'scale(1)', opacity: .95, offset: .45 }, { transform: 'scale(1.15)', opacity: 0 }],
+    { duration: kind === 'miss' ? 520 : 680, easing: 'ease-out' });
+  a.onfinish = () => d.remove();
+  if (kind === 'sunk') B.el.animate([{ transform: 'translate(0,0)' }, { transform: 'translate(-6px,3px)' }, { transform: 'translate(5px,-4px)' }, { transform: 'translate(-3px,-2px)' }, { transform: 'translate(0,0)' }], { duration: 380 });
+}
+function confetti() {
+  const box = document.createElement('div'), cols = ['#ff6a3d', '#ffd23f', '#2f80ed', '#1fa35a', '#e8505b', '#9b59b6'];
+  box.className = 'confetti';
+  document.body.appendChild(box);
+  for (let i = 0; i < 70; i++) {
+    const p = document.createElement('i');
+    p.style.background = cols[i % cols.length];
+    p.style.left = Math.random() * 100 + 'vw';
+    box.appendChild(p);
+    p.animate([{ transform: 'translate(0,-20px) rotate(0deg)' }, { transform: `translate(${(Math.random() - .5) * 200}px,105vh) rotate(${Math.random() * 720}deg)` }],
+      { duration: 1800 + Math.random() * 1600, delay: Math.random() * 500, easing: 'cubic-bezier(.2,.6,.4,1)', fill: 'forwards' });
+  }
+  setTimeout(() => box.remove(), 4300);
+}
+
+/* ---------- хід гри ---------- */
+function newGame() {
+  GEN++;
+  $('#end').classList.add('hidden'); $('#cover').classList.add('hidden');
+  const kinds = MODES[cfg.mode].kinds;
+  st = { n: cfg.size, players: makePlayers(kinds), boards: [], minis: null, turn: 0, phase: 'setup', viewer: -1, lastHuman: -1,
+    over: false, busy: false, waiting: false, focus: -1, drag: null, humans: kinds.filter(k => k === 'h').length };
+  for (const p of st.players) {
+    const r = randomFleet(st.n, FLEETS[st.n]);
+    p.fleet = r.fleet; p.occ = r.occ; p.shots = new Uint8Array(st.n * st.n);
+  }
+  st.boards = st.players.map(p => buildBoard(p.i));
+  st.queue = st.players.filter(p => p.kind === 'h').map(p => p.i);
+  nextSetup();
+}
+async function nextSetup() {
+  const g = GEN, pi = st.queue.shift();
+  if (pi == null) { startBattle(); return; }
+  const p = st.players[pi];
+  st.phase = 'setup'; st.viewer = -1; st.drag = null;
+  show('setup');
+  $('#setupSlot').innerHTML = '';
+  if (st.humans > 1) {
+    await cover(`${p.name} ховає літаки`, `Передай пристрій: ${p.dat}. Інші — не підглядайте!`, '▶ Далі');
+    if (g !== GEN) return;
+  }
+  st.viewer = pi;
+  $('#setupSlot').appendChild(st.boards[pi].el);
+  const pill = $('#sPill');
+  pill.style.background = p.color;
+  pill.textContent = st.humans > 1 ? `✈️ ${p.name}: сховай літаки` : '✈️ Сховай свої літаки';
+  sayS('Тягни літак, щоб перенести. Натисни на літак — він повернеться. Літаки не можуть торкатися.');
+  layout();
+  renderBoard(pi);
+}
+function startBattle() {
+  const solo = soloOf();
+  st.phase = 'battle';
+  st.viewer = solo ? solo.i : -1;
+  st.lastHuman = solo ? solo.i : -1;
+  st.turn = 0; st.focus = -1;
+  buildDock();
+  show('battle');
+  layout();
+  runTurn();
+}
+function advance() {
+  const N = st.players.length;
+  for (let k = 1; k <= N; k++) { const j = (st.turn + k) % N; if (st.players[j].alive) { st.turn = j; return; } }
+}
+function humanPrompt(p) {
+  const opps = st.players.filter(q => q.alive && q.i !== p.i).length;
+  return opps > 1 ? '🎯 Натисни на клітинку в небі суперника. Інший суперник — унизу.' : '🎯 Натисни на клітинку в небі суперника.';
+}
+async function runTurn() {
+  const g = GEN;
+  if (st.over) return;
+  const p = st.players[st.turn];
+  st.waiting = false;
+  updatePill(); renderDock();
+  if (p.kind === 'h') {
+    if (st.humans > 1 && st.lastHuman !== p.i) {
+      st.viewer = -1; renderAll();
+      await cover(`Хід: ${p.name}`, `Передай пристрій: ${p.dat}. Інші — не підглядайте!`, '▶ Почати хід');
+      if (g !== GEN) return;
+    }
+    st.viewer = p.i; st.lastHuman = p.i;
+    const lt = p.lastTarget;
+    setFocus(lt >= 0 && lt !== p.i && st.players[lt].alive ? lt : firstOpp(p.i));
+    st.waiting = true;
+    renderAll();
+    say(humanPrompt(p));
+    return;
+  }
+  if (st.humans > 1) st.viewer = -1;
+  renderAll();
+  say(`${p.icon} ${p.name} думає…`);
+  await sleep(550);
+  while (g === GEN && !st.over) {
+    const { t, id } = botPick(p.i);
+    p.lastTarget = t;
+    setFocus(t);
+    say(`${p.icon} ${p.name} бомбить ${st.players[t].acc}…`);
+    const r = await fire(p.i, t, id, g);
+    if (g !== GEN || st.over) return;
+    if (r.res === 'miss') break;
+    await sleep(450);
+  }
+  await sleep(1200);   // щоб устигнути роздивитися, куди впала бомба
+  if (g !== GEN || st.over) return;
+  advance();
+  runTurn();
+}
+async function humanFire(ti, id) {
+  const g = GEN, me = st.players[st.turn];
+  if (!st.waiting || st.busy || st.over || me.kind !== 'h') return;
+  if (ti === me.i) { say('🛡️ Це твоє небо. Обери суперника внизу 🙂'); return; }
+  const t = st.players[ti];
+  if (!t.alive) { say('Цей суперник уже поза грою. Обери іншого 🙂'); return; }
+  if (t.shots[id] !== 0) { nudge(st.boards[ti].cells[id]); say('Сюди вже падала бомба 🙂 Обери іншу клітинку.'); return; }
+  st.waiting = false;
+  renderStage();
+  me.lastTarget = ti;
+  const r = await fire(me.i, ti, id, g);
+  if (g !== GEN || st.over) return;
+  if (r.res === 'miss') {
+    await sleep(800);
+    if (g !== GEN) return;
+    if (st.humans > 1) { st.viewer = -1; renderAll(); }
+    advance();
+    runTurn();
+    return;
+  }
+  if (!t.alive) setFocus(firstOpp(me.i));
+  st.waiting = true;
+  renderStage();
+}
+async function fire(ai, ti, id, g) {
+  st.busy = true;
+  const a = st.players[ai], t = st.players[ti], human = a.kind === 'h';
+  if (!FAST) await animateBomb(ti, id, !human);
+  if (g !== GEN) return { res: 'cancel' };
+  const r = shoot(t, id);
+  if (r.res === 'miss') {
+    sfx.splash(); if (!FAST) boomFx(ti, id, 'miss');
+    say(human ? '💨 Мимо!' : `💨 ${a.name} промахується.`);
+  } else if (r.res === 'hit') {
+    sfx.boom(false); if (!FAST) boomFx(ti, id, 'hit');
+    say(human ? '💥 Влучання! Бомби ще раз!' : `💥 ${a.name} влучає!`);
+  } else {
+    sfx.boom(true); if (!FAST) boomFx(ti, id, 'sunk');
+    const what = TYPES[r.ship.type].acc;
+    say(human ? `🔥 Збито ${what}! Бомби ще раз!` : `🔥 ${a.name} збиває ${whose(t, what)}!`);
+  }
+  renderBoard(ti); renderDock(); renderStage();
+  if (!t.alive) {
+    await sleep(750);
+    if (g !== GEN) return r;
+    renderAll();
+    if (!checkEnd()) say(`😵 ${t.name}: усі літаки збито!` + (human ? ' Бомби далі! 🎯' : ''));
+    else say(t.kind === 'h' && st.humans === 1 ? '😵 Усі твої літаки збито…' : '🏁 Гра закінчена!');
+  }
+  st.busy = false;
+  return r;
+}
+function checkEnd() {
+  const alive = st.players.filter(p => p.alive), solo = soloOf();
+  if (alive.length > 1 && !(solo && !solo.alive)) return false;
+  st.over = true; st.waiting = false; st.busy = false;
+  $('#bPill').textContent = '🏁 Гра закінчена';
+  renderAll();
+  let icon, title, sub, win;
+  if (solo) {
+    win = solo.alive;
+    if (win) { icon = '🏆'; title = 'Перемога!'; sub = st.players.length > 2 ? 'Усі літаки роботів збито! ✈️' : 'Усі літаки робота збито! ✈️'; }
+    else { icon = '😢'; title = alive.length > 1 ? 'Цього разу виграли роботи' : `Цього разу виграв ${alive[0].name}`; sub = 'Нічого страшного — спробуй ще раз! 💪'; }
+    LS.set('games', LS.get('games', 0) + 1);
+    if (win) LS.set('wins', LS.get('wins', 0) + 1);
+  } else {
+    const w = alive[0];
+    win = !!w && w.kind === 'h';
+    icon = '🏆'; title = w ? `Перемога: ${w.icon} ${w.name}!` : 'Нічия!'; sub = 'Останній у небі! ✈️';
+  }
+  const g = GEN;
+  setTimeout(() => {
+    if (g !== GEN) return;
+    $('#endIcon').textContent = icon; $('#endTitle').textContent = title; $('#endSub').textContent = sub;
+    $('#end').classList.remove('hidden');
+    if (win) { sfx.win(); if (!FAST) confetti(); } else sfx.lose();
+  }, FAST ? 0 : 1000);
+  return true;
+}
+function onBoardClick(pi, id) {
+  if (!st || st.phase !== 'battle') return;
+  if (pi !== st.focus) {
+    if ((st.waiting && !st.busy) || st.over) { setFocus(pi); sfx.tick(); }
+    return;
+  }
+  if (id >= 0 && !st.over) humanFire(pi, id);
+}
+
+/* ---------- розстановка: тягни, щоб перенести; натисни, щоб повернути ---------- */
+function moveShip(p, k, cells, dir) {
+  const f = p.fleet[k];
+  f.cells.forEach(id => { if (p.occ[id] === k) p.occ[id] = -1; });
+  f.cells = cells; f.dir = dir;
+  cells.forEach(id => { p.occ[id] = k; });
+  renderBoard(p.i);
+}
+function rotateShip(p, k, pivot) {
+  const f = p.fleet[k], n = st.n, nd = f.dir === 'h' ? 'v' : 'h';
+  const pr = (pivot / n) | 0, pc = pivot % n, i0 = Math.max(0, f.cells.indexOf(pivot));
+  const order = [i0].concat(Array.from({ length: f.len }, (_, i) => i).filter(i => i !== i0));
+  for (const i of order) {
+    const cells = cellsOf(n, nd === 'v' ? pr - i : pr, nd === 'h' ? pc - i : pc, f.len, nd);
+    if (cells && fits(n, p.occ, cells, k)) { moveShip(p, k, cells, nd); sfx.tick(); return; }
+  }
+  nudge(st.boards[p.i].el);
+  sayS('Тут тісно — літак не повертається 🙂');
+}
+function attachDrag(B, pi) {
+  const grid = B.grid;
+  let d = null;
+  const cellAt = e => {
+    const r = grid.getBoundingClientRect(), n = st.n;
+    const c = Math.floor((e.clientX - r.left) / r.width * n), rr = Math.floor((e.clientY - r.top) / r.height * n);
+    return (c < 0 || rr < 0 || c >= n || rr >= n) ? -1 : rr * n + c;
+  };
+  grid.addEventListener('pointerdown', e => {
+    if (!st || st.phase !== 'setup' || st.viewer !== pi) return;
+    const id = cellAt(e);
+    if (id < 0) return;
+    const p = st.players[pi], k = p.occ[id];
+    if (k < 0) { sayS('Тягни сам літак 🙂 Натисни на нього — він повернеться.'); return; }
+    d = { k, idx: p.fleet[k].cells.indexOf(id), start: id, last: id, moved: false, cand: null, pid: e.pointerId };
+    try { grid.setPointerCapture(e.pointerId); } catch (err) {}
+    e.preventDefault();
+  });
+  grid.addEventListener('pointermove', e => {
+    if (!d || e.pointerId !== d.pid || !st) return;
+    const id = cellAt(e);
+    if (id < 0 || id === d.last) return;
+    d.last = id; d.moved = true;
+    const p = st.players[pi], f = p.fleet[d.k], n = st.n;
+    let r = ((id / n) | 0) - (f.dir === 'v' ? d.idx : 0), c = id % n - (f.dir === 'h' ? d.idx : 0);
+    r = Math.max(0, Math.min(r, n - (f.dir === 'v' ? f.len : 1)));
+    c = Math.max(0, Math.min(c, n - (f.dir === 'h' ? f.len : 1)));
+    const cells = cellsOf(n, r, c, f.len, f.dir);
+    d.cand = { cells, ok: !!cells && fits(n, p.occ, cells, d.k) };
+    st.drag = { pi, k: d.k, cells, ok: d.cand.ok };
+    renderBoard(pi);
+  });
+  grid.addEventListener('pointerup', e => {
+    if (!d || e.pointerId !== d.pid) return;
+    const dd = d;
+    d = null;
+    if (!st) return;
+    st.drag = null;
+    const p = st.players[pi];
+    if (!dd.moved) rotateShip(p, dd.k, dd.start);
+    else if (dd.cand && dd.cand.ok) { moveShip(p, dd.k, dd.cand.cells, p.fleet[dd.k].dir); sfx.tick(); }
+    else { renderBoard(pi); nudge(B.el); sayS('Тут не можна: літаки не можуть торкатися 🙂'); }
+  });
+  grid.addEventListener('pointercancel', e => {
+    if (!d || e.pointerId !== d.pid) return;
+    d = null;
+    if (st) { st.drag = null; renderBoard(pi); }
+  });
+}
+
+/* ---------- меню ---------- */
+function chips(el, items, cur, pick) {
+  el.innerHTML = '';
+  for (const [v, label] of items) {
+    const b = document.createElement('button');
+    b.type = 'button'; b.className = 'chip' + (v === cur ? ' on' : ''); b.textContent = label;
+    b.onclick = () => { pick(v); sfx.tick(); renderMenu(); };
+    el.appendChild(b);
+  }
+}
+function syncSound() { $$('[data-sound]').forEach(b => { b.textContent = cfg.sound ? '🔊' : '🔇'; }); }
+function renderMenu() {
+  chips($('#cMode'), Object.keys(MODES).map(k => [k, MODES[k].label]), cfg.mode, v => { cfg.mode = v; LS.set('mode', v); });
+  chips($('#cSize'), [[8, '8×8 · швидко'], [10, '10×10 · велике']], cfg.size, v => { cfg.size = v; LS.set('size', v); });
+  chips($('#cDiff'), [['easy', '🙂 Легко'], ['hard', '😈 Складно']], cfg.diff, v => { cfg.diff = v; LS.set('diff', v); });
+  $('#diffCard').classList.toggle('hidden', !MODES[cfg.mode].kinds.includes('b'));
+  const cnt = {};
+  FLEETS[cfg.size].forEach(t => { cnt[t] = (cnt[t] || 0) + 1; });
+  $('#fleetPrev').innerHTML = ['vip', 'plane', 'heli'].map(t =>
+    `<div class="row">${iconSVG(t, '#2f80ed', 24)}<span>${TYPES[t].name}: ${TYPES[t].len} клітинки × ${cnt[t]}</span></div>`).join('');
+  const w = LS.get('wins', 0), gm = LS.get('games', 0);
+  $('#stats').textContent = gm ? `🏆 Перемог над роботами: ${w} з ${gm}` : '';
+  syncSound();
+}
+let homeAt = 0;
+function goHome() {
+  const inGame = st && !st.over && (st.phase === 'setup' || st.phase === 'battle') && $('#cover').classList.contains('hidden');
+  if (inGame && Date.now() - homeAt > 3000) {
+    homeAt = Date.now();
+    (st.phase === 'setup' ? sayS : say)('Натисни 🏠 ще раз, щоб вийти в меню');
+    return;
+  }
+  GEN++; homeAt = 0;
+  $('#end').classList.add('hidden'); $('#cover').classList.add('hidden');
+  st = null;
+  renderMenu();
+  show('menu');
+}
+
+$('#hero').innerHTML = [[6, 12, 74, 22], [58, 52, 96, 26], [28, 64, 58, 18], [80, 8, 66, 20]]
+  .map(([x, y, w, h]) => `<div class="cl" style="left:${x}%;top:${y}px;width:${w}px;height:${h}px"></div>`).join('') + `<div class="hb">${BOMBER}</div>`;
+$('#bPlay').onclick = () => { sfx.tick(); newGame(); };
+$('#bShuf').onclick = () => {
+  if (!st || st.phase !== 'setup' || st.viewer < 0) return;
+  const p = st.players[st.viewer], r = randomFleet(st.n, FLEETS[st.n]);
+  p.fleet = r.fleet; p.occ = r.occ;
+  renderBoard(p.i); sfx.tick();
+};
+$('#bReady').onclick = () => { if (!st || st.phase !== 'setup' || st.viewer < 0) return; sfx.tick(); nextSetup(); };
+$('#bAgain').onclick = () => newGame();
+$('#bLook').onclick = () => {
+  $('#end').classList.add('hidden');
+  const m = $('#bMsg'), b = document.createElement('button');
+  m.textContent = '🏁 Гра закінчена ';
+  b.type = 'button'; b.className = 'btn sm prim'; b.textContent = '🔁 Ще раз'; b.onclick = () => newGame();
+  m.appendChild(b);
+};
+$$('[data-home]').forEach(b => b.addEventListener('click', goHome));
+$$('[data-sound]').forEach(b => b.addEventListener('click', () => { cfg.sound = !cfg.sound; LS.set('sound', cfg.sound); syncSound(); if (cfg.sound) sfx.tick(); }));
+window.addEventListener('resize', layout);
+renderMenu();
+show('menu');
+/*TEST-HOOK*/
+})();
+</script>
+</body>
+</html>
